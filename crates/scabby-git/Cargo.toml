@@ -1,0 +1,26 @@
+[package]
+name = "scabby-git"
+description = "Bare repository storage and git smart-HTTP transport for Scabby."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+scabby-core = { path = "../scabby-core" }
+base64 = { workspace = true }
+gix = { version = "0.89", default-features = false, features = ["revision", "parallel", "max-performance-safe", "sha1"] }
+rayon = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+time = { workspace = true }
+tokio = { workspace = true }
+walkdir = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
