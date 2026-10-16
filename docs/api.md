@@ -185,6 +185,7 @@ branch counts and last commits without a request per card.
 | GET | `/repos/{o}/{r}/commits` | `?ref=main&page=1&per_page=30`; `total` and `total_pages` are usually `null` |
 | GET | `/repos/{o}/{r}/commits/{sha}` | adds `body`, `files[]`, and `stats` |
 | GET | `/repos/{o}/{r}/contents/{path}` | `?ref=main`; directory listing or file object |
+| GET | `/repos/{o}/{r}/contents/` | the same as `/contents`, for a client that joins an empty path |
 | GET | `/repos/{o}/{r}/raw/{ref}/{path}` | raw bytes with a guessed content type |
 | GET | `/repos/{o}/{r}/readme` | `?ref=main`; `{path, text}` or 404 |
 

@@ -109,7 +109,10 @@ pub fn router(state: AppState) -> Router {
         .layer(PropagateRequestIdLayer::x_request_id())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
         .layer(TraceLayer::new_for_http())
-        .layer(axum::middleware::from_fn(middleware::security_headers))
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            middleware::security_headers,
+        ))
         .with_state(state)
 }
 

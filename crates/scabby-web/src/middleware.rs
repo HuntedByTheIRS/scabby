@@ -1,26 +1,29 @@
 //! Small response layers.
 
-use axum::extract::Request;
+use axum::extract::{Request, State};
 use axum::http::HeaderValue;
 use axum::middleware::Next;
 use axum::response::Response;
 
+use crate::AppState;
+use crate::assets;
+
 /// Headers every response carries.
 ///
-/// The UI is a compiled bundle with no inline script of its own, so the content security policy can
-/// be strict: scripts and styles come from this origin, images may be remote because a user's avatar
-/// can be, and nothing may be framed.
-pub async fn security_headers(request: Request, next: Next) -> Response {
+/// Scripts and styles come from this origin, images may be remote because a user's avatar can be, and
+/// nothing may be framed. The one script that is not a file is the boot script SvelteKit writes into
+/// the shell, which [`assets::content_security_policy`] hashes into the policy.
+pub async fn security_headers(
+    State(state): State<AppState>,
+    request: Request,
+    next: Next,
+) -> Response {
     let mut response = next.run(request).await;
     let headers = response.headers_mut();
 
     headers.insert(
         axum::http::header::CONTENT_SECURITY_POLICY,
-        HeaderValue::from_static(
-            "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; \
-             script-src 'self'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; \
-             base-uri 'self'",
-        ),
+        assets::content_security_policy(state.config.frontend_dir.as_deref()),
     );
     headers.insert(
         axum::http::header::X_CONTENT_TYPE_OPTIONS,
