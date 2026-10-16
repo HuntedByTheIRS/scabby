@@ -1,0 +1,22 @@
+[package]
+name = "scabby-db"
+description = "Postgres storage for Scabby: connection pool, migrations, and one module per resource."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+scabby-core = { path = "../scabby-core" }
+serde = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+time = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
