@@ -1,0 +1,76 @@
+[workspace]
+resolver = "3"
+members = ["crates/scabby-core"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.90"
+license = "Apache-2.0"
+repository = "https://github.com/HuntedByTheIRS/scabby"
+homepage = "https://github.com/HuntedByTheIRS/scabby"
+authors = ["huntedbytheirs <huntedbyth3irs@gmail.com>"]
+description = "Self-hosted Git hosting, built from scratch."
+
+[workspace.dependencies]
+# Shared across crates; each crate opts in with `dep = { workspace = true }`.
+anyhow = "1"
+argon2 = "0.6"
+axum = "0.8"
+base64 = "0.23"
+bytes = "1"
+clap = { version = "4", features = ["derive", "env"] }
+futures-util = "0.3"
+gix = "0.89"
+http = "1"
+mime_guess = "2"
+rand = "0.10"
+rayon = "1"
+rust-embed = "8"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.11"
+sqlx = { version = "0.9", default-features = false, features = [
+    "runtime-tokio",
+    "tls-rustls-ring",
+    "postgres",
+    "time",
+    "migrate",
+    "macros",
+    "json",
+] }
+thiserror = "2"
+time = { version = "0.3", features = ["serde", "formatting", "parsing", "macros"] }
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["io"] }
+toml = "1"
+tower = "0.5"
+tower-http = { version = "0.7", features = [
+    "fs",
+    "trace",
+    "compression-gzip",
+    "request-id",
+    "catch-panic",
+    "limit",
+    "set-header",
+    "timeout",
+] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt", "json"] }
+url = { version = "2", features = ["serde"] }
+walkdir = "2"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+dbg_macro = "warn"
+todo = "warn"
+
+# One binary, UI embedded, one codegen unit so release builds inline across crates.
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
