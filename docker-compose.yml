@@ -1,0 +1,36 @@
+# Local development only — this is not a production deployment.
+# Brings up the single PostgreSQL 18 instance the development defaults in
+# .env.example and scabby.toml.example point at:
+#
+#   docker compose up -d
+#   docker compose exec postgres psql -U scabby -d scabby
+#
+# Credentials are development throwaways (scabby/scabby/scabby) and the port is
+# published on localhost only by default.
+
+name: scabby
+
+services:
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: scabby
+      POSTGRES_PASSWORD: scabby
+      POSTGRES_DB: scabby
+    ports:
+      - "5432:5432"
+    volumes:
+      # PostgreSQL 18 moved PGDATA to /var/lib/postgresql/18/docker and declares
+      # its VOLUME as /var/lib/postgresql (17 and below used
+      # /var/lib/postgresql/data). Mounting the parent path is what makes the
+      # data persist across container re-creation on 18.
+      - scabby-postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scabby -d scabby"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  scabby-postgres:

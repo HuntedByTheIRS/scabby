@@ -1,0 +1,32 @@
+# Example Scabby configuration file.
+#
+# Copy it to `scabby.toml` next to the binary and edit:
+#
+#   cp scabby.toml.example scabby.toml
+#
+# Every key is optional — omit one and its built-in default applies. The same
+# settings are also available as SCABBY_* environment variables; see
+# .env.example.
+#
+# `database_url` holds credentials, so a real `scabby.toml` is a secret and must
+# not be committed.
+
+# Address the HTTP server binds to.
+listen = "127.0.0.1:3000"
+
+# PostgreSQL connection string used by sqlx.
+# Matches the `postgres` service in docker-compose.yml.
+database_url = "postgres://scabby:scabby@localhost:5432/scabby"
+
+# Directory holding on-disk git repositories and other runtime state.
+data_dir = "./data"
+
+# Public base URL; used to build absolute links (clone URLs, redirects).
+base_url = "http://localhost:3000"
+
+# Who may create accounts: "open" or "closed".
+registration = "open"
+
+# Serve the UI from this directory instead of the copy embedded in the binary.
+# Leave unset in production so the embedded assets are used.
+# frontend_dir = "./web/build"

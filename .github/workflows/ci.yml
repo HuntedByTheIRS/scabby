@@ -1,0 +1,106 @@
+# Continuous integration for Scabby.
+#
+# Two required jobs plus a smoke check:
+#   rust — formatting, clippy (deny warnings), the test suite against a real
+#          PostgreSQL 18 service, a release build, and a smoke step that proves
+#          the built binary starts.
+#   web  — the SvelteKit SPA: install, type/check pass, production build.
+#
+# NOT VERIFIED ON A RUNNER: this file was assembled from the repo's Cargo.toml,
+# web/package.json and docker-compose.yml and parsed locally, but it has not been
+# executed on a GitHub runner. The Rust toolchain version is whatever
+# dtolnay/rust-toolchain@stable resolves to at run time.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Least privilege — neither job writes to the repository.
+permissions:
+  contents: read
+
+# A new push to the same ref cancels the run already in flight for that ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust:
+    name: rust (fmt, clippy, test, release, smoke)
+    runs-on: ubuntu-latest
+    env:
+      # sqlx queries are runtime-checked, so the test binary needs a live
+      # database; this points at the service container declared below.
+      SCABBY_TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/scabby_test
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: scabby_test
+        ports:
+          - 5432:5432
+        # The job only starts once the container answers pg_isready.
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry and target directory
+        uses: Swatinem/rust-cache@v2
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (warnings are errors)
+        run: cargo clippy --all-targets --locked -- -D warnings
+
+      - name: Test
+        run: cargo test --locked
+
+      - name: Build release binary
+        run: cargo build --locked --release
+
+      # Proves the release artifact actually runs: if the CLI cannot parse its
+      # own arguments or the binary fails to start, this step fails.
+      - name: Smoke check the release binary
+        run: |
+          ./target/release/scabby --version
+          ./target/release/scabby --help
+
+  web:
+    name: web (check, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check the SPA
+        run: npm run check
+
+      - name: Build the SPA
+        run: npm run build

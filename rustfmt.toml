@@ -1,0 +1,14 @@
+# Rustfmt configuration.
+#
+# Stable-channel options only. Nightly-only settings (imports_granularity,
+# group_imports, format_strings, ...) are deliberately absent: rustfmt refuses
+# to apply them on stable, which would turn `cargo fmt --all -- --check` into a
+# failing CI step.
+#
+# See https://rust-lang.github.io/rustfmt/ (stable options are unmarked).
+
+edition = "2024"
+max_width = 100
+newline_style = "Unix"
+use_field_init_shorthand = true
+use_try_shorthand = true
