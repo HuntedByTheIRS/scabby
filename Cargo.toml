@@ -4,6 +4,7 @@ members = [
     "crates/scabby-core",
     "crates/scabby-db",
     "crates/scabby-git",
+    "crates/scabby-web",
 ]
 
 [workspace.package]
