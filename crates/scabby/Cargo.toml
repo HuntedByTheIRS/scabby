@@ -1,0 +1,29 @@
+[package]
+name = "scabby"
+description = "The Scabby server: one binary that serves the API, the user interface, and git."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lints]
+workspace = true
+
+[[bin]]
+name = "scabby"
+path = "src/main.rs"
+
+[dependencies]
+scabby-core = { path = "../scabby-core" }
+scabby-db = { path = "../scabby-db" }
+scabby-git = { path = "../scabby-git" }
+scabby-web = { path = "../scabby-web" }
+anyhow = { workspace = true }
+axum = { workspace = true }
+clap = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+url = { workspace = true }
