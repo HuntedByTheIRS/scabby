@@ -54,6 +54,29 @@ impl Page {
         u32::try_from(pages).unwrap_or(u32::MAX)
     }
 
+    /// The `Link` header for a list whose total was not counted.
+    ///
+    /// Commits are the case: walking a large history to produce an exact page count would be work
+    /// nobody asked for, so the list reports what it knows, which is whether a further page exists.
+    pub fn link_header_without_total(
+        &self,
+        url_without_page: &str,
+        has_more: bool,
+    ) -> Option<String> {
+        if !has_more {
+            return None;
+        }
+        let separator = if url_without_page.contains('?') {
+            '&'
+        } else {
+            '?'
+        };
+        Some(format!(
+            "<{url_without_page}{separator}page={}>; rel=\"next\"",
+            self.number + 1
+        ))
+    }
+
     /// The `Link` header for this page, or `None` when there is only one page.
     ///
     /// `url_without_page` must not already carry a `page` parameter.
@@ -91,10 +114,10 @@ pub struct PageResult<T> {
     pub page: u32,
     /// Size of the page.
     pub per_page: u32,
-    /// Total items across every page.
-    pub total: i64,
-    /// Total pages available.
-    pub total_pages: u32,
+    /// Total items across every page, or `null` when the caller did not ask for a count to be taken.
+    pub total: Option<i64>,
+    /// Total pages available, or `null` when `total` is.
+    pub total_pages: Option<u32>,
 }
 
 impl<T> PageResult<T> {
@@ -104,9 +127,26 @@ impl<T> PageResult<T> {
             items,
             page: page.number,
             per_page: page.per_page,
-            total,
-            total_pages: page.total_pages(total),
+            total: Some(total),
+            total_pages: Some(page.total_pages(total)),
         }
+    }
+
+    /// Build a response body for a list that was not counted from end to end.
+    pub fn uncounted(items: Vec<T>, page: Page) -> Self {
+        Self {
+            items,
+            page: page.number,
+            per_page: page.per_page,
+            total: None,
+            total_pages: None,
+        }
+    }
+
+    /// Whether this page came back full, which is the only hint an uncounted list has that another
+    /// page might exist.
+    pub fn is_full(&self) -> bool {
+        self.items.len() as u32 >= self.per_page
     }
 }
 
@@ -129,6 +169,25 @@ mod tests {
         assert_eq!(page.total_pages(0), 0);
         assert_eq!(page.total_pages(30), 1);
         assert_eq!(page.total_pages(31), 2);
+    }
+
+    #[test]
+    fn uncounted_lists_link_only_forward() {
+        let page = Page::new(Some(1), Some(30));
+        assert_eq!(
+            page.link_header_without_total("/api/v1/repos?ref=main", true)
+                .as_deref(),
+            Some("</api/v1/repos?ref=main&page=2>; rel=\"next\"")
+        );
+        assert!(
+            page.link_header_without_total("/api/v1/repos", false)
+                .is_none()
+        );
+
+        let result = PageResult::uncounted(vec![1, 2, 3], Page::new(None, Some(3)));
+        assert!(result.total.is_none());
+        assert!(result.total_pages.is_none());
+        assert!(result.is_full());
     }
 
     #[test]

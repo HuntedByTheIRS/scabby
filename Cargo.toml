@@ -1,6 +1,9 @@
 [workspace]
 resolver = "3"
-members = ["crates/scabby-core", "crates/scabby-db"]
+members = [
+    "crates/scabby-core",
+    "crates/scabby-db",
+]
 
 [workspace.package]
 version = "0.1.0"
@@ -20,6 +23,7 @@ axum = "0.8"
 base64 = "0.23"
 bytes = "1"
 clap = { version = "4", features = ["derive", "env"] }
+flate2 = "1"
 futures-util = "0.3"
 gix = "0.89"
 http = "1"
