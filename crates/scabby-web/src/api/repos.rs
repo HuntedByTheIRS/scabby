@@ -44,6 +44,9 @@ pub fn router() -> Router<AppState> {
         .route("/repos/{owner}/{repo}/commits", get(commits))
         .route("/repos/{owner}/{repo}/commits/{sha}", get(commit))
         .route("/repos/{owner}/{repo}/contents", get(contents_root))
+        // A client that builds the path by joining an empty tree path asks for `contents/`. Treating
+        // it as a missing route would break the repository's front page for that client.
+        .route("/repos/{owner}/{repo}/contents/", get(contents_root))
         .route("/repos/{owner}/{repo}/contents/{*path}", get(contents))
         .route("/repos/{owner}/{repo}/raw/{revision}/{*path}", get(raw))
         .route("/repos/{owner}/{repo}/readme", get(readme))
